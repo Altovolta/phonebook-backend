@@ -1,6 +1,9 @@
 const express = require('express')
+const morgan = require('morgan')
+
 
 const app = express()
+app.use(morgan('tiny'))
 app.use(express.json())
 
 
@@ -63,7 +66,6 @@ function generateId() {
 app.post('/api/persons/', (request, response) => {
 
     const personData = request.body
-    console.log("Creating ne2 person...", personData)
     
 
     const personExists = persons.some(person => person.name === personData.name)
@@ -92,11 +94,8 @@ app.post('/api/persons/', (request, response) => {
 
 app.delete('/api/persons/:id', (request, response) => {
     const personId = Number(request.params.id)
-    console.log("Deleting id:", personId)
 
     persons = persons.filter(person => person.id !== personId)
-
-    console.log(`ID ${personId} deleted`)
     response.status(204).end()
 
 })
