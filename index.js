@@ -27,19 +27,33 @@ const persons = [
 
 app.get('/info', (request, response) => {
     const currentDate = new Date();
-    const resp_message = `
+    const respMsg = `
         Phonebook has info for ${persons.length} people
         <br /> 
         ${currentDate}
     `
 
-    response.send(resp_message)
+    response.send(respMsg)
 })
 
 
 app.get('/api/persons', (request, response)=> {
     response.json(persons)
 }) 
+
+
+app.get('/api/persons/:id', (request, response)=> {
+    const personId = Number(request.params.id)
+    const person = persons.find(person => person.id === personId)
+    if (person){
+        response.json(person)
+    } else 
+    {
+        response.status(404).end()
+    }
+    
+})
+
 
 const PORT = 3001
 app.listen(PORT, () => {
