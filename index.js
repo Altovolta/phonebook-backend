@@ -62,17 +62,32 @@ function generateId() {
 
 app.post('/api/persons/', (request, response) => {
 
-    console.log("Creating ne2 person...", request.body)
+    const personData = request.body
+    console.log("Creating ne2 person...", personData)
+    
 
-    const person = {
-        id: generateId(),
-        name: request.body.name,
-        number: request.body.number
+    const personExists = persons.some(person => person.name === personData.name)
+
+    if (!personData.name || !personData.number) {
+        response.status(400).json({ error: "Name or number is missing" })
+
+    }
+    else if (personExists) {
+        response.status(409).json({error: `The person ${personData.name} already exists`})
+
+    } else {
+        const person = {
+            id: generateId(),
+            name: personData.name,
+            number: personData.number
+        }
+    
+        persons = persons.concat(person)
+    
+        response.json(person)
     }
 
-    persons = persons.concat(person)
-
-    response.json(person)
+    
 })
 
 app.delete('/api/persons/:id', (request, response) => {
