@@ -66,40 +66,33 @@ app.get('/api/persons/:id', (request, response) => {
     
 })
 
-function generateId() {
-    return Math.floor(Math.random() * (2**32) )
-}
 
 app.post('/api/persons/', (request, response) => {
 
     const personData = request.body
-    
-    if (!personData.name || !personData.number) {
-        return response.status(400).json({ error: 'name or number missing' })
-    }
-    
-    const personExists = persons.some(person => person.name === personData.name)
 
     if (!personData.name || !personData.number) {
         response.status(400).json({ error: "Name or number is missing" })
 
     }
-    else if (personExists) {
-        response.status(409).json({error: `The person ${personData.name} already exists`})
 
-    } else {
-        const person = {
-            id: generateId(),
-            name: personData.name,
-            number: personData.number
+    Person.findOne({name: personData.name}).then(searchedPerson => {
+
+        if (searchedPerson) {
+            response.status(409).json({error: `The person ${personData.name} already exists`})
+
+        } else {
+
+            const person = new Person({
+                name: personData.name,
+                number: personData.number
+            })
+
+            person.save().then(savedPerson => {
+                response.json(savedPerson)
+            })
         }
-    
-        persons = persons.concat(person)
-    
-        response.json(person)
-    }
-
-    
+    })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
