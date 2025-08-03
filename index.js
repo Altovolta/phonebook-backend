@@ -1,10 +1,12 @@
 const express = require('express')
 const morgan = require('morgan')
-const app = express()
+const Person = require('./models/person')
 
 morgan.token('data', (req) => {
     return JSON.stringify(req.body)
 })
+
+const app = express()
 
 app.use(express.static('dist'))
 app.use(morgan(':method :url :status :res[content-length] - :response-time ms :data'))
@@ -46,7 +48,9 @@ app.get('/info', (request, response) => {
 
 
 app.get('/api/persons', (request, response) => {
-    response.json(persons)
+    Person.find({}).then(people => {
+        response.json(people)
+    })
 }) 
 
 
@@ -70,7 +74,10 @@ app.post('/api/persons/', (request, response) => {
 
     const personData = request.body
     
-
+    if (!personData.name || !personData.number) {
+        return response.status(400).json({ error: 'name or number missing' })
+    }
+    
     const personExists = persons.some(person => person.name === personData.name)
 
     if (!personData.name || !personData.number) {
