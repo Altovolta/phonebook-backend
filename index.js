@@ -55,14 +55,16 @@ app.get('/api/persons', (request, response, next) => {
 
 
 app.get('/api/persons/:id', (request, response, next) => {
-    const personId = Number(request.params.id)
-    const person = persons.find(person => person.id === personId)
-    if (person){
-        response.json(person)
-    } else 
-    {
-        response.status(404).end()
-    }
+
+    Person.findById(request.params.id)
+    .then(person => {
+        if (person){
+            response.json(person)
+        } else 
+        {
+            response.status(404).end()
+        }
+    }).catch(error => next(error))
     
 })
 
@@ -130,13 +132,21 @@ app.put('/api/persons/:id', (request, response, next) => {
     }).catch(error => next(error))
 })
 
-
-
-const errorHandler = (error, request, response, next) => {
-    console.error(error.message)
-    response.status(500).json({ error: 'Internal Server Error' })
+const unknownEndpoint = (request, response) => {
+    response.status(404).send({error: 'unknown endpoint'})
 }
 
+app.use(unknownEndpoint)
+
+const errorHandler = (error, request, response, next) => {
+    
+    if (error.name === 'CastError') {
+        return response.status(400).send({error: 'malformatted id'})
+    }
+    
+    console.error(`${error.name}: ${error.message}`)
+    response.status(500).json({ error: 'Internal Server Error' })
+}
 
 app.use(errorHandler)
 
