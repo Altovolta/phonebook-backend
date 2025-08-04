@@ -19,6 +19,13 @@ const personSchema = new mongoose.Schema({
     number: {
       type: String,
       required: true,
+      minlength: 8,
+      validate: {
+        validator: (number) => {
+          return /^\d{2,3}-\d+$/.test(number)
+        },
+        message: props => `Invalid phone number. Phone numbers must be in the format XX-XXXXXXX or XXX-XXXXXXX and have a minimum of 8 characters.`
+      }
     }
 })
 
