@@ -76,7 +76,8 @@ app.post('/api/persons/', (request, response) => {
 
     }
 
-    Person.findOne({name: personData.name}).then(searchedPerson => {
+    Person.findOne({name: personData.name})
+    .then(searchedPerson => {
 
         if (searchedPerson) {
             response.status(409).json({error: `The person ${personData.name} already exists`})
@@ -90,17 +91,27 @@ app.post('/api/persons/', (request, response) => {
 
             person.save().then(savedPerson => {
                 response.json(savedPerson)
+            }).catch(error => {
+                console.error(error)
+                response.status(500).json({ error: 'Internal Server Error' })
             })
         }
+    }).catch(error => {
+        console.error(error)
+        response.status(500).json({ error: 'Internal Server Error' })
     })
 })
 
 app.delete('/api/persons/:id', (request, response) => {
-    const personId = Number(request.params.id)
 
-    persons = persons.filter(person => person.id !== personId)
-    response.status(204).end()
-
+    Person.findByIdAndDelete(request.params.id)
+    .then(result => {
+        response.status(204).end()
+    }).catch(error => {
+        console.error(error)
+        response.status(500).json({ error: 'Internal Server Error' })
+    })
+   
 })
 
 const PORT = process.env.PORT || 3001
