@@ -3,7 +3,7 @@ const morgan = require('morgan')
 const Person = require('./models/person')
 
 morgan.token('data', (req) => {
-    return JSON.stringify(req.body)
+  return JSON.stringify(req.body)
 })
 
 const app = express()
@@ -13,133 +13,133 @@ app.use(morgan(':method :url :status :res[content-length] - :response-time ms :d
 app.use(express.json())
 
 let persons = [
-    { 
-      "id": 1,
-      "name": "Arto Hellas", 
-      "number": "040-123456"
-    },
-    { 
-      "id": 2,
-      "name": "Ada Lovelace", 
-      "number": "39-44-5323523"
-    },
-    { 
-      "id": 3,
-      "name": "Dan Abramov", 
-      "number": "12-43-234345"
-    },
-    { 
-      "id": 4,
-      "name": "Mary Poppendieck", 
-      "number": "39-23-6423122"
-    }
+  {
+    'id': 1,
+    'name': 'Arto Hellas',
+    'number': '040-123456'
+  },
+  {
+    'id': 2,
+    'name': 'Ada Lovelace',
+    'number': '39-44-5323523'
+  },
+  {
+    'id': 3,
+    'name': 'Dan Abramov',
+    'number': '12-43-234345'
+  },
+  {
+    'id': 4,
+    'name': 'Mary Poppendieck',
+    'number': '39-23-6423122'
+  }
 ]
 
-app.get('/info', (request, response, next) => {
-    const currentDate = new Date();
-    const respMsg = `
+app.get('/info', (request, response) => {
+  const currentDate = new Date()
+  const respMsg = `
         Phonebook has info for ${persons.length} people
         <br /> 
         ${currentDate}
     `
 
-    response.send(respMsg)
+  response.send(respMsg)
 })
 
 
 app.get('/api/persons', (request, response, next) => {
-    Person.find({}).then(people => {
-        response.json(people)
-    }).catch(error => next(error))
-}) 
+  Person.find({}).then(people => {
+    response.json(people)
+  }).catch(error => next(error))
+})
 
 
 app.get('/api/persons/:id', (request, response, next) => {
 
-    Person.findById(request.params.id)
+  Person.findById(request.params.id)
     .then(person => {
-        if (person){
-            response.json(person)
-        } else 
-        {
-            response.status(404).end()
-        }
+      if (person){
+        response.json(person)
+      } else
+      {
+        response.status(404).end()
+      }
     }).catch(error => next(error))
-    
+
 })
 
 
 app.post('/api/persons/', (request, response, next) => {
 
-    const personData = request.body
+  const personData = request.body
 
-    Person.findOne({name: personData.name})
+  Person.findOne({ name: personData.name })
     .then(searchedPerson => {
 
-        if (searchedPerson) {
-            response.status(409).json({error: `The person ${personData.name} already exists`})
+      if (searchedPerson) {
+        response.status(409).json({ error: `The person ${personData.name} already exists` })
 
-        } else {
+      } else {
 
-            const person = new Person({
-                name: personData.name,
-                number: personData.number
-            })
+        const person = new Person({
+          name: personData.name,
+          number: personData.number
+        })
 
-            person.save().then(savedPerson => {
-                response.json(savedPerson)
-            }).catch(error => next(error))
-        }
+        person.save().then(savedPerson => {
+          response.json(savedPerson)
+        }).catch(error => next(error))
+      }
     }).catch(error => next(error))
 })
 
 app.delete('/api/persons/:id', (request, response, next) => {
 
-    Person.findByIdAndDelete(request.params.id)
-    .then(result => {
-        response.status(204).end()
+  Person.findByIdAndDelete(request.params.id)
+    .then( () => {
+      response.status(204).end()
     }).catch(error => next(error))
-   
+
 })
 
 
 app.put('/api/persons/:id', (request, response, next) => {
 
-    const personData = request.body
+  const personData = request.body
 
-    Person.findById(request.params.id)
+  Person.findById(request.params.id)
     .then(person => {
-        if (!person) {
-            response.status(404).send({error: "The person does not exist"})
-        } else {
-            person.name = personData.name
-            person.number = personData.number
+      if (!person) {
+        response.status(404).send({ error: 'The person does not exist' })
+      } else {
+        person.name = personData.name
+        person.number = personData.number
 
-            person.save()
-            .then(updatedPerson => {
-                response.json(updatedPerson)
-            }).catch(error => next(error))
-        }
+        person.save()
+          .then(updatedPerson => {
+            response.json(updatedPerson)
+          }).catch(error => next(error))
+      }
 
     }).catch(error => next(error))
 })
 
 const unknownEndpoint = (request, response) => {
-    response.status(404).send({error: 'unknown endpoint'})
+  response.status(404).send({ error: 'unknown endpoint' })
 }
 
 app.use(unknownEndpoint)
 
-const errorHandler = (error, request, response, next) => {
-    
-    if (error.name === 'CastError') {
-        return response.status(400).send({error: 'malformatted id'})
-    } else if (error.name == 'ValidationError') {
-        return response.status(400).send({error: error.message})
-    }
-    
-    console.error(`${error.name}: ${error.message}`)
-    response.status(500).json({ error: 'Internal Server Error' })
+const errorHandler = (error, request, response) => {
+
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' })
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).send({ error: error.message })
+  }
+
+  console.error(`${error.name}: ${error.message}`)
+  response.status(500).json({ error: 'Internal Server Error' })
 }
 
 app.use(errorHandler)
